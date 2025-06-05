@@ -6,8 +6,8 @@ export default defineUserConfig({
   base: "/site-vuepress/",
 
   lang: "zh-CN",
-  title: "文档演示",
-  description: "vuepress-theme-hope 的文档演示",
+  title: "苏木",
+  description: "苏木的 VuePress Site 模板",
 
   theme,
 

@@ -4,16 +4,16 @@ import navbar from "./navbar.js";
 import sidebar from "./sidebar.js";
 
 export default hopeTheme({
-  hostname: "https://vuepress-theme-hope-docs-demo.netlify.app",
+  hostname: "https://docs-site.github.io/site-vuepress/",
 
   author: {
-    name: "Mr.Hope",
-    url: "https://mister-hope.com",
+    name: "苏木",
+    url: "https://github.com/docs-site/site-vuepress",
   },
 
-  logo: "https://theme-hope-assets.vuejs.press/logo.svg",
-
-  repo: "vuepress-theme-hope/vuepress-theme-hope",
+  logo: "/images/sumu_src.png",
+  favicon: "/images/favicon_sumu32x32.ico",
+  repo: "docs-site/site-vuepress",
 
   docsDir: "src",
 
@@ -24,7 +24,7 @@ export default hopeTheme({
   sidebar,
 
   // 页脚
-  footer: "默认页脚",
+  footer: "苏木的 VuePress Site 模板",
   displayFooter: true,
 
   // 加密配置
