@@ -1,0 +1,49 @@
+
+name: 部署文档
+
+on:
+  push:
+    branches:
+      - master # 或者 main，根据默认分支名称决定
+
+permissions:   # 设置权限, 允许 GitHub Actions 写入仓库内容
+  contents: write
+
+jobs:
+  deploy-gh-pages:          # 定义一个名为 deploy-gh-pages 的作业
+    runs-on: ubuntu-latest  # 在最新的 Ubuntu 环境中运行
+    steps:
+      - name: Checkout      # 检出仓库代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          # 如果文档需要 Git 子模块，取消注释下一行
+          # submodules: true
+
+      - name: 设置 pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm       # 使用 pnpm 缓存依赖
+
+      - name: 安装依赖
+        run: |
+          corepack enable                # 启用 corepack
+          pnpm install --frozen-lockfile # 安装依赖，使用锁文件确保一致性
+
+      - name: 构建文档
+        env:
+          NODE_OPTIONS: --max_old_space_size=8192 # 设置 Node.js 内存限制
+        run: |-
+          pnpm run docs:build
+          > src/.vuepress/dist/.nojekyll
+
+      - name: 部署文档
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          # 部署文档
+          branch: gh-pages
+          folder: src/.vuepress/dist
