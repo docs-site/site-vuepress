@@ -12,6 +12,11 @@ permissions:   # 设置权限, 允许 GitHub Actions 写入仓库内容
 jobs:
   deploy-gh-pages:          # 定义一个名为 deploy-gh-pages 的作业
     runs-on: ubuntu-latest  # 在最新的 Ubuntu 环境中运行
+    # push时，只有提交信息包含 [deploy] 或 [update] 标签时触发
+    # repository_dispatch时，只有 event-type 为 trigger_site_deployment 时触发
+    if: |
+      github.event_name == 'push' && (
+        contains(github.event.head_commit.message, '[deploy]') || contains(github.event.head_commit.message, '[update]'))
     steps:
       - name: Checkout      # 检出仓库代码
         uses: actions/checkout@v4
@@ -20,6 +25,12 @@ jobs:
           # 如果文档需要 Git 子模块，取消注释下一行
           # submodules: true
 
+      - name: 打印相关路径
+        run: | # | 为 yaml 的特定符号，其下可以使用多行文字。
+          echo "当前路径为 $(pwd)"
+          echo "工作路径为 ${{ github.workspace }}"
+          echo "HOME路径为 $HOME"
+      
       - name: 设置 pnpm
         uses: pnpm/action-setup@v4
 
@@ -45,5 +56,6 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           # 部署文档
+          single-commit: true # 使用单个提交进行部署
           branch: gh-pages
           folder: src/.vuepress/dist
