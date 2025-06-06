@@ -22,7 +22,8 @@ export default hopeTheme({
 
   // 侧边栏
   sidebar,
-
+  sidebarSorter: ["filename", "readme", "order", "title"],
+  
   // 页脚
   footer: "苏木的 VuePress Site 模板",
   displayFooter: true,
