@@ -1,0 +1,3 @@
+[submodule "src/sdocs/nodejs-docs"]
+	path = src/sdocs/nodejs-docs
+	url = git@github.com:docs-site/nodejs-docs.git

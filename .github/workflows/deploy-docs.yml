@@ -22,15 +22,53 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          # 如果文档需要 Git 子模块，取消注释下一行
-          # submodules: true
+          # 这一行只能检出本仓库中记录的子模块的版本，也就是停留在父仓库记录的旧提交，无法更到远程最新，需要后面单独处理
+          submodules: true
+
+      - name: 更新子模块到远程最新版本
+        run: |
+          # git submodule update --remote
+          # 递归初始化子模块（处理嵌套子模块）
+          git submodule update --init --recursive --force
+          # 强制将每个子模块更新到远程默认分支的最新提交
+          git submodule foreach ' git fetch --all --prune --tags
+          git reset --hard origin/$(git remote show origin | grep "HEAD branch" | cut -d" " -f5)'
 
       - name: 打印相关路径
         run: | # | 为 yaml 的特定符号，其下可以使用多行文字。
           echo "当前路径为 $(pwd)"
           echo "工作路径为 ${{ github.workspace }}"
           echo "HOME路径为 $HOME"
+
+      - name: 获取相关提交信息
+        id: get_commit_info
+        run: |
+          # src/sdocs/nodejs-docs 获取nodejs-docs的相关信息
+          cd ${{ github.workspace }}/src/sdocs/nodejs-docs # 切换到nodejs-docs目录
+          echo "当前路径为 $(pwd)"
+          echo "NODEJS_REPO_NAME=$(git config --get remote.origin.url | sed -E 's/(git@|https:\/\/)github.com(:|\/)([^\/]+)\/([^\.]+)(\.git)?/\3\/\4/')" >> $GITHUB_OUTPUT
+          echo "NODEJS_COMMIT_ID=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+          echo "NODEJS_SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "NODEJS_COMMIT_MESSAGE=$(git log -1 --pretty=%B | head -n1)" >> $GITHUB_OUTPUT
+
+          # 获取主仓库提交信息
+          cd ${{ github.workspace }} # 切换回工作目录
+          echo "当前路径为 $(pwd)"
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c 1-7)
+          echo "MAIN_SHORT_SHA=$SHORT_SHA" >> $GITHUB_OUTPUT
+          echo "MAIN_COMMIT_MESSAGE=$(git log -1 --pretty=%B | head -n1)" >> $GITHUB_OUTPUT
       
+      - name: 打印提交信息
+        run: |
+          echo "source/_posts/nodejs-docs Repository: ${{ steps.get_commit_info.outputs.NODEJS_REPO_NAME }}"
+          echo "source/_posts/nodejs-docs Commit ID : ${{ steps.get_commit_info.outputs.NODEJS_COMMIT_ID }}"
+          echo "source/_posts/nodejs-docs Short SHA : ${{ steps.get_commit_info.outputs.NODEJS_SHORT_SHA }}"
+          echo "source/_posts/nodejs-docs Commit Message: ${{ steps.get_commit_info.outputs.NODEJS_COMMIT_MESSAGE }}"
+          echo "main Repository: ${{ github.repository }}"
+          echo "main Commit ID : ${{ github.sha }}"
+          echo "main Short SHA : ${{ steps.get_commit_info.outputs.MAIN_SHORT_SHA }}"
+          echo "main Commit Message: ${{ steps.get_commit_info.outputs.MAIN_COMMIT_MESSAGE }}"
+
       - name: 设置 pnpm
         uses: pnpm/action-setup@v4
 
