@@ -5,6 +5,8 @@ on:
   push:
     branches:
       - master # 或者 main，根据默认分支名称决定
+  repository_dispatch: # 事件触发
+    types: [trigger_deployment_site_vuepress]
 
 permissions:   # 设置权限, 允许 GitHub Actions 写入仓库内容
   contents: write
@@ -15,8 +17,9 @@ jobs:
     # push时，只有提交信息包含 [deploy] 或 [update] 标签时触发
     # repository_dispatch时，只有 event-type 为 trigger_site_deployment 时触发
     if: |
-      github.event_name == 'push' && (
-        contains(github.event.head_commit.message, '[deploy]') || contains(github.event.head_commit.message, '[update]'))
+      github.event_name == 'repository_dispatch' && github.event.action == 'trigger_deployment_site_vuepress' ||
+      (github.event_name == 'push' && (
+        contains(github.event.head_commit.message, '[deploy]') || contains(github.event.head_commit.message, '[update]')))
     steps:
       - name: Checkout      # 检出仓库代码
         uses: actions/checkout@v4
@@ -24,6 +27,19 @@ jobs:
           fetch-depth: 0
           # 这一行只能检出本仓库中记录的子模块的版本，也就是停留在父仓库记录的旧提交，无法更到远程最新，需要后面单独处理
           submodules: true
+
+      # 打印触发信息
+      - name: Log trigger source
+        run: |
+          echo "Triggered by: ${{ github.event_name }}"
+          if [[ "${{ github.event_name }}" == "repository_dispatch" ]]; then
+            echo "This deployment was triggered by docs repository"
+            echo "Dispatch SHA       : ${{ github.event.client_payload.sha }}"
+            echo "Dispatch Repository: ${{ github.event.client_payload.repository }}"
+            echo "Triggered at       : ${{ github.event.client_payload.timestamp }}"
+          else
+            echo "Repo Own Push SHA  : ${{ github.sha }}"
+          fi
 
       - name: 更新子模块到远程最新版本
         run: |
