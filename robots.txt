@@ -1,0 +1,4 @@
+User-agent:*
+Disallow:
+
+Sitemap: https://docs-site.github.io/site-vuepress/site-vuepress/sitemap.xml
